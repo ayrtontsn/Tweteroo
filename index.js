@@ -3,6 +3,7 @@ import cors from "cors"
 import httpStatus from "http-status"
 import { MongoClient, ObjectId } from "mongodb"
 import dotenv from "dotenv"
+import Joi from "joi"
 
 dotenv.config();
 const databaseURL = process.env.DATABASE_URL;
@@ -36,41 +37,55 @@ app.post("/sign-up", async (req, res) => {
 
 app.post("/tweets", async(req,res)=>{
     const msg = req.body;
-    try {
 
-        const user = await db.collection("users").findOne({username: msg.username});
-        console.log(user);
-        const avatar = user.avatar;
+    const usertweet = await db.collection("users").findOne({username: msg.username});
+    if (!usertweet){
+        return res.status(httpStatus.UNAUTHORIZED);
+    }
+    const avatar = usertweet.avatar;
 
+    const schema =Joi.object({
+        username: Joi.string().required(),
+        avatar: Joi.string().required(),
+        tweet: Joi.string().required()
+    })
 
-        await db.collection("tweets").insertOne({
+    try {       
+        const tweet = await db.collection("tweets").insertOne({
             username: msg.username,
             avatar,
             tweet: msg.tweet
         })
-        console.log("Deu certo eu acho")
+
+        schema.validate(tweet, {abortEarly: false})
+
         return res.sendStatus(httpStatus.CREATED)
     } catch (error) {
-        return res.send(error.message);
+        return res.status(httpStatus.UNPROCESSABLE_ENTITY);
     }
 })
 
 app.get("/tweets", async(req,res) => {
-    const tweets = await db.collection("tweets").find().toArray()
+    await db.collection("tweets").find().toArray()
         .then(tweets => {
             return res.send(tweets.reverse())
         })
         .catch(err => res.send(err))
 })
 
-app.get("/users", (req,res) => {
-    const tweets = req.body;
-    db.collection("users").find().toArray()
-        .then(users => {
-            console.log(users)
-            return res.send(users)
-        })
-        .catch(err => res.send(err))
+app.delete("/tweets/:id", async(req,res) =>{
+    const { id } = req.params;
+
+    try {
+        const tweetdel = await db.collection("tweets").deleteOne({ _id: new ObjectId(id)})
+
+        if (tweetdel.deletedCount === 0) {
+            console.log("não deletou")}
+
+        return res.sendStatus(httpStatus.NO_CONTENT)
+    } catch (error) {
+        res.sendStatus(httpStatus.BAD_REQUEST)
+    }
 })
 
 app.listen(porta);
