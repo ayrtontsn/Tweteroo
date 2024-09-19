@@ -26,6 +26,7 @@ app.post("/sign-up", async (req, res) => {
             username: user.username,
             avatar: user.avatar
         });
+        console.log("Deu certo o login")
         return res.sendStatus(httpStatus.CREATED);
 
     } catch (error) {
@@ -33,11 +34,31 @@ app.post("/sign-up", async (req, res) => {
     }
 })
 
-app.get("/tweets", (req,res) => {
-    const tweets = req.body;
-    db.collection("tweets").find().toArray()
+app.post("/tweets", async(req,res)=>{
+    const msg = req.body;
+    try {
+
+        const user = await db.collection("users").findOne({username: msg.username});
+        console.log(user);
+        const avatar = user.avatar;
+
+
+        await db.collection("tweets").insertOne({
+            username: msg.username,
+            avatar,
+            tweet: msg.tweet
+        })
+        console.log("Deu certo eu acho")
+        return res.sendStatus(httpStatus.CREATED)
+    } catch (error) {
+        return res.send(error.message);
+    }
+})
+
+app.get("/tweets", async(req,res) => {
+    const tweets = await db.collection("tweets").find().toArray()
         .then(tweets => {
-            return res.send(tweets)
+            return res.send(tweets.reverse())
         })
         .catch(err => res.send(err))
 })
@@ -46,6 +67,7 @@ app.get("/users", (req,res) => {
     const tweets = req.body;
     db.collection("users").find().toArray()
         .then(users => {
+            console.log(users)
             return res.send(users)
         })
         .catch(err => res.send(err))
