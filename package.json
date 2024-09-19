@@ -1,0 +1,25 @@
+{
+  "name": "tweteroo_back-end",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "keywords": [],
+  "author": "Ayrton Tales Silva do Nascimento",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "nodemon": "^3.1.5"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "http-status": "^1.7.4",
+    "joi": "^17.13.3",
+    "mongodb": "^6.9.0"
+  }
+}
